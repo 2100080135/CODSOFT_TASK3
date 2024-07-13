@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f0d0d;
+        }
+
+        .calculator {
+            border: 1px solid #020202;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.97);
+            width: 360px;
+        }
+
+        .calculator-screen {
+            width: 100%;
+            height: 80px;
+            border: none;
+            background-color: #eeeaea4c;
+            color: rgb(244, 236, 236);
+            text-align: right;
+            padding: 20px;
+            font-size: 2.5em;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .calculator-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 10px;
+            padding: 20px;
+        }
+
+        .btn {
+            height: 60px;
+            border-radius: 5px;
+            border: none;
+            background-color: #e0e0e0;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #a41cc0;
+        }
+
+        .operator {
+            background-color: #ff9500;
+            color: white;
+        }
+
+        .operator:hover {
+            background-color: #a85ccf;
+        }
+
+        .equal-sign {
+            background-color: #ff9500;
+            color: white;
+            grid-column: span 4;
+        }
+
+        .equal-sign:hover {
+            background-color: #42b131;
+        }
+
+        .clear {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        .clear:hover {
+            background-color: #226daa;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <input type="text" class="calculator-screen" id="calculator-screen" disabled>
+        <div class="calculator-buttons">
+            <button type="button" class="btn" value="7">7</button>
+            <button type="button" class="btn" value="8">8</button>
+            <button type="button" class="btn" value="9">9</button>
+            <button type="button" class="btn operator" value="/">÷</button>
+
+            <button type="button" class="btn" value="4">4</button>
+            <button type="button" class="btn" value="5">5</button>
+            <button type="button" class="btn" value="6">6</button>
+            <button type="button" class="btn operator" value="*">×</button>
+
+            <button type="button" class="btn" value="1">1</button>
+            <button type="button" class="btn" value="2">2</button>
+            <button type="button" class="btn" value="3">3</button>
+            <button type="button" class="btn operator" value="-">−</button>
+
+            <button type="button" class="btn" value="0">0</button>
+            <button type="button" class="btn decimal" value=".">.</button>
+            <button type="button" class="btn clear" value="all-clear">AC</button>
+            <button type="button" class="btn operator" value="+">+</button>
+
+            <button type="button" class="btn" value="%">%</button>
+            <button type="button" class="btn" value="sin">sin</button>
+            <button type="button" class="btn" value="cos">cos</button>
+            <button type="button" class="btn" value="tan">tan</button>
+
+            <button type="button" class="btn equal-sign" value="=">=</button>
+        </div>
+    </div>
+    <script>
+        const calculator = {
+            displayValue: '0',
+            firstOperand: null,
+            waitingForSecondOperand: false,
+            operator: null,
+        };
+
+        function inputDigit(digit) {
+            const { displayValue, waitingForSecondOperand } = calculator;
+
+            if (waitingForSecondOperand === true) {
+                calculator.displayValue = digit;
+                calculator.waitingForSecondOperand = false;
+            } else {
+                calculator.displayValue = displayValue === '0' ? digit : displayValue + digit;
+            }
+        }
+
+        function inputDecimal(dot) {
+            if (calculator.waitingForSecondOperand === true) {
+                calculator.displayValue = '0.';
+                calculator.waitingForSecondOperand = false;
+                return;
+            }
+
+            if (!calculator.displayValue.includes(dot)) {
+                calculator.displayValue += dot;
+            }
+        }
+
+        function handleOperator(nextOperator) {
+            const { firstOperand, displayValue, operator } = calculator;
+            const inputValue = parseFloat(displayValue);
+
+            if (operator && calculator.waitingForSecondOperand)  {
+                calculator.operator = nextOperator;
+                return;
+            }
+
+            if (firstOperand == null && !isNaN(inputValue)) {
+                calculator.firstOperand = inputValue;
+            } else if (operator) {
+                const result = performCalculation[operator](firstOperand, inputValue);
+
+                calculator.displayValue = `${parseFloat(result.toFixed(7))}`;
+                calculator.firstOperand = result;
+            }
+
+            calculator.waitingForSecondOperand = true;
+            calculator.operator = nextOperator;
+        }
+
+        const performCalculation = {
+            '/': (firstOperand, secondOperand) => firstOperand / secondOperand,
+            '*': (firstOperand, secondOperand) => firstOperand * secondOperand,
+            '+': (firstOperand, secondOperand) => firstOperand + secondOperand,
+            '-': (firstOperand, secondOperand) => firstOperand - secondOperand,
+            '=': (firstOperand, secondOperand) => secondOperand,
+            '%': (firstOperand, secondOperand) => firstOperand % secondOperand,
+            'sin': (firstOperand) => Math.sin(firstOperand * (Math.PI / 180)),
+            'cos': (firstOperand) => Math.cos(firstOperand * (Math.PI / 180)),
+            'tan': (firstOperand) => Math.tan(firstOperand * (Math.PI / 180))
+        };
+
+        function resetCalculator() {
+            calculator.displayValue = '0';
+            calculator.firstOperand = null;
+            calculator.waitingForSecondOperand = false;
+            calculator.operator = null;
+        }
+
+        function updateDisplay() {
+            const display = document.querySelector('.calculator-screen');
+            display.value = calculator.displayValue;
+        }
+
+        updateDisplay();
+
+        const keys = document.querySelector('.calculator-buttons');
+        keys.addEventListener('click', (event) => {
+            const { target } = event;
+            const { value } = target;
+
+            if (!target.matches('button')) {
+                return;
+            }
+
+            switch (value) {
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                case '=':
+                case '%':
+                case 'sin':
+                case 'cos':
+                case 'tan':
+                    handleOperator(value);
+                    break;
+                case '.':
+                    inputDecimal(value);
+                    break;
+                case 'all-clear':
+                    resetCalculator();
+                    break;
+                default:
+                    if (Number.isInteger(parseFloat(value))) {
+                        inputDigit(value);
+                    }
+            }
+
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
